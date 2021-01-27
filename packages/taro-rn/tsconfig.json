@@ -6,7 +6,7 @@
   "exclude": ["src/__tests__/**"],
   "compilerOptions": {
     "rootDir": "./src",
-    "outDir": "./dist",
+    "outDir": "/Users/nick/taro-runner/tapp/node_modules/@tarojs/taro-rn/dist",
     "strictNullChecks": true,
     "sourceMap": true,
     "allowJs": true,

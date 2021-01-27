@@ -12,8 +12,8 @@
     "libList.js"
   ],
   "scripts": {
-    "assets": "cpy '**/*.png' '../dist/' --cwd=src --parents",
-    "build": "rimraf ./dist && tsc && yarn assets",
+    "assets": "cpy '**/*.png' '/Users/nick/taro-runner/tapp/node_modules/@tarojs/taro-rn/dist' --cwd=src --parents",
+    "build": "rimraf ./dist && yarn assets && tsc",
     "dev": "yarn assets && tsc --watch",
     "lint": "eslint .",
     "test": "jest --silent",
