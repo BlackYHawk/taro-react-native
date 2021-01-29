@@ -17,7 +17,7 @@ class EventChannel {
       callback(...args)
       this.off(eventName, cbWithRemove)
     }
-    events[eventName].push(cbWithRemove)
+    events[eventName].push(DeviceEventEmitter.addListener(eventName, cbWithRemove))
   }
 
   on (eventName, callback) {
