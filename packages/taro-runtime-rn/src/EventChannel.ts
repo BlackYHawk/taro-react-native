@@ -1,6 +1,12 @@
 import { DeviceEventEmitter } from 'react-native'
 
+let currentPagePath: string
 const events: any = {}
+const evtInfo: any = {
+  args: null,
+  eventName: '',
+  pagePath: ''
+}
 class EventChannel {
   // constructor() {
   //   this.events = {};
@@ -22,14 +28,21 @@ class EventChannel {
 
   on (eventName, callback) {
     this.checkExistence(eventName)
-    events[eventName].push(DeviceEventEmitter.addListener(eventName, callback))
+    const hasExist = events[eventName].some(emitter => emitter.listener.name === callback.name)
+    if (!hasExist) {
+      events[eventName].push(DeviceEventEmitter.addListener(eventName, callback))
+      if (evtInfo.eventName === eventName && evtInfo.pagePath !== currentPagePath) {
+        evtInfo.pagePath = currentPagePath
+        callback(...evtInfo.args)
+      }
+    }
   }
 
   off (eventName, callback) {
     this.checkExistence(eventName)
     if (callback && typeof callback === 'function') {
       events[eventName] = events[eventName].filter(emitter => {
-        if (emitter.listener === callback) {
+        if (emitter.listener.name === callback.name) {
           emitter.remove()
           return false
         }
@@ -43,6 +56,9 @@ class EventChannel {
 
   emit (eventName, ...args) {
     this.checkExistence(eventName)
+    evtInfo.args = args
+    evtInfo.eventName = eventName
+    evtInfo.pagePath = currentPagePath
     DeviceEventEmitter.emit(eventName, ...args)
   }
 }
@@ -50,4 +66,9 @@ class EventChannel {
 // Object.assign(React.Component.prototype, {
 //   getOpenerEventChannel
 // })
-export default new EventChannel()
+const eventChannel = new EventChannel()
+
+export const getEventChannel = (path) => {
+  currentPagePath = path
+  return eventChannel
+}

@@ -7,7 +7,7 @@ import { isClassComponent } from './app'
 import { Current } from './current'
 import { Instance, PageInstance } from './instance'
 import { eventCenter } from './emmiter'
-import eventChannel from './EventChannel'
+import { getEventChannel } from './EventChannel'
 import { PageConfig, HooksMethods, ScrollOption, BaseOption, BackgroundOption, TextStyleOption } from './types/index'
 
 const compId = incrementId()
@@ -222,7 +222,7 @@ export function createPageConfig (Page: any, pageConfig: PageConfig): any {
             }
           },
           getOpenerEventChannel () {
-            return eventChannel
+            return getEventChannel(pagePath)
           }
         }
         // 存储对应小程序的实例

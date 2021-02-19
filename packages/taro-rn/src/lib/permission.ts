@@ -21,7 +21,6 @@ const getAuthSetting = async () => {
   const scopeArr = keyArr.map(key => scopeMap[key])
   let auths = {}
   const { permissions } = await Permissions.getAsync(...scopeArr)
-  console.log(permissions)
   Object.keys(permissions).forEach(pkey => {
     keyArr.forEach((skey) => {
       if (scopeMap[skey] === pkey) {
@@ -37,7 +36,6 @@ const handleAppStateChange = async (nextAppState, resolve, reject, opts) => {
   const res: any = {}
 
   if (AppState.currentState === 'active') {
-    console.log('App has come to the foreground!');
     try {
       res.authSetting = await getAuthSetting()
       res.errMsg = 'openSetting:ok'
@@ -75,7 +73,7 @@ export function authorize(opts: Taro.authorize.Option): Promise<Taro.General.Cal
         fail && fail(res)
         complete && complete(res)
 
-        reject(res)
+        resolve(res)
       }
     } catch (error) {
       res.errMsg = 'authorize:fail'
@@ -110,7 +108,7 @@ export function getSetting(opts: Taro.getSetting.Option): Promise<Taro.getSettin
 }
 
 export function openSetting(opts: Taro.openSetting.Option): Promise<Taro.openSetting.SuccessCallbackResult> {
-  return new Promise(async (resolve, reject) => {
+  return new Promise((resolve, reject) => {
     stateListener = (next) => handleAppStateChange(next, resolve, reject, opts)
     AppState.addEventListener('change', stateListener)
     Linking.openSettings()
