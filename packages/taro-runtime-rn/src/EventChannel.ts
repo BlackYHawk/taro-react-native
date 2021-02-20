@@ -1,74 +1,59 @@
-import { DeviceEventEmitter } from 'react-native'
+import { getRouteEventChannel } from '@tarojs/router-rn'
+import { Events } from './emmiter'
 
-let currentPagePath: string
-const events: any = {}
-const evtInfo: any = {
-  args: null,
-  eventName: '',
-  pagePath: ''
+interface ExeListItem {
+  eventName: string,
+  data: object
 }
-class EventChannel {
-  // constructor() {
-  //   this.events = {};
-  // }
-  checkExistence (eventName) {
-    if (!events[eventName]) {
-      events[eventName] = []
-    }
-  }
 
-  once (eventName, callback) {
-    this.checkExistence(eventName)
-    const cbWithRemove = (...args) => {
-      callback(...args)
-      this.off(eventName, cbWithRemove)
-    }
-    events[eventName].push(DeviceEventEmitter.addListener(eventName, cbWithRemove))
-  }
+interface RouteEvt extends Events {
+  emit?: (events: any, params: any) => void,
+  addEvents?: (events: any) => void
+}
+
+interface PageEvt extends Events {
+  exeList: any[],
+  emit: object
+}
+
+class PageEvts extends Events {
+  exeList = []
 
   on (eventName, callback) {
-    this.checkExistence(eventName)
-    const hasExist = events[eventName].some(emitter => emitter.listener.name === callback.name)
-    if (!hasExist) {
-      events[eventName].push(DeviceEventEmitter.addListener(eventName, callback))
-      if (evtInfo.eventName === eventName && evtInfo.pagePath !== currentPagePath) {
-        evtInfo.pagePath = currentPagePath
-        callback(...evtInfo.args)
+    super.on(eventName, callback, this)
+    this.exeList.forEach((item: ExeListItem) => {
+      if (item.eventName === eventName) {
+        super.trigger(item.eventName, item.data)
       }
-    }
+    })
+    this.exeList = []
+    return this
   }
 
-  off (eventName, callback) {
-    this.checkExistence(eventName)
-    if (callback && typeof callback === 'function') {
-      events[eventName] = events[eventName].filter(emitter => {
-        if (emitter.listener.name === callback.name) {
-          emitter.remove()
-          return false
-        }
-        return true
-      })
-    } else {
-      events[eventName].forEach(emitter => emitter.remove())
-      events[eventName] = []
-    }
-  }
-
-  emit (eventName, ...args) {
-    this.checkExistence(eventName)
-    evtInfo.args = args
-    evtInfo.eventName = eventName
-    evtInfo.pagePath = currentPagePath
-    DeviceEventEmitter.emit(eventName, ...args)
+  emit (events, params) {
+    routeChannel.trigger(events, params.data)
   }
 }
-// 挂载至原型，从而this.getOpenerEventChannel()方式使用,对标微信小程序相关方法
-// Object.assign(React.Component.prototype, {
-//   getOpenerEventChannel
-// })
-const eventChannel = new EventChannel()
 
-export const getEventChannel = (path) => {
-  currentPagePath = path
-  return eventChannel
+const routeChannel: RouteEvt = new Events()
+const pageChannel: PageEvt = new PageEvts()
+
+// pageChannel.exeList = []
+routeChannel.emit = (events, params) => {
+  pageChannel.exeList.push({
+    eventName: events,
+    data: params.data
+  })
+}
+routeChannel.addEvents = (events) => {
+  if (!events || typeof events !== 'object') return
+  Object.keys(events).forEach(key => {
+    routeChannel.on(key, events[key], routeChannel)
+  })
+}
+getRouteEventChannel(routeChannel)
+
+export default {
+  routeChannel,
+  pageChannel
 }
